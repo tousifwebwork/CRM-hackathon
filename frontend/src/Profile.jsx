@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { KeyRound, LogOut, Save, ShieldCheck, UserRound } from "lucide-react";
 import { getProfile, updateProfile, changePassword, logoutUser, getErrorMessage } from "./api.jsx";
-import { Layout, Modal, Alert, Spinner } from "./Dashboard.jsx";
+import { Layout, Modal, Alert, Spinner, buttonClass, fieldClass, inputClass, modalActionsClass, surfaceClass } from "./Dashboard.jsx";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -100,54 +100,64 @@ export default function Profile() {
   const setP = (k) => (e) => setPw((p) => ({ ...p, [k]: e.target.value }));
 
   const pwField = (id, label, key, autoComplete) => (
-    <div className="field">
-      <label htmlFor={id}>{label}</label>
-      <input id={id} type="password" autoComplete={autoComplete} className={`input ${pwErrors[key] ? "invalid" : ""}`} value={pw[key]} onChange={setP(key)} aria-invalid={!!pwErrors[key]} aria-describedby={`${id}-err`} />
-      {pwErrors[key] && <span className="field-error" id={`${id}-err`}>{pwErrors[key]}</span>}
+    <div className={fieldClass}>
+      <label htmlFor={id} className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</label>
+      <input id={id} type="password" autoComplete={autoComplete} className={inputClass(!!pwErrors[key])} value={pw[key]} onChange={setP(key)} aria-invalid={!!pwErrors[key]} aria-describedby={`${id}-err`} />
+      {pwErrors[key] && <span className="text-xs font-medium text-rose-600" id={`${id}-err`}>{pwErrors[key]}</span>}
     </div>
   );
 
   return (
     <Layout title="Profile">
+      <div className="mb-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Workspace</p>
+        <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Profile & security</h2>
+        <p className="mt-1 text-sm text-slate-500">Manage your account details and keep your workspace secure.</p>
+      </div>
       {loading ? (
         <Spinner label="Loading profile..." />
       ) : loadError ? (
         <Alert>{loadError}</Alert>
       ) : (
-        <div className="grid" style={{ maxWidth: 640 }}>
-          <section className="card" aria-labelledby="info-h">
-            <h2 id="info-h" style={{ fontSize: 16, marginBottom: 14 }}>Profile information</h2>
+        <div className="grid max-w-3xl gap-5">
+          <section className={`${surfaceClass} p-5 sm:p-6`} aria-labelledby="info-h">
+            <div className="mb-5 flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600"><UserRound size={18} /></span>
+              <div><h2 id="info-h" className="font-semibold text-slate-950">Profile information</h2><p className="mt-1 text-sm text-slate-500">The name and email your team sees.</p></div>
+            </div>
             <Alert type={infoMsg.type || "error"} onClose={() => setInfoMsg({ type: "", text: "" })}>{infoMsg.text}</Alert>
             <form onSubmit={saveInfo} noValidate>
-              <div className="field">
-                <label htmlFor="p-name">Name</label>
-                <input id="p-name" className={`input ${infoErrors.name ? "invalid" : ""}`} value={info.name} onChange={(e) => setInfo((i) => ({ ...i, name: e.target.value }))} aria-invalid={!!infoErrors.name} aria-describedby="p-name-err" />
-                {infoErrors.name && <span className="field-error" id="p-name-err">{infoErrors.name}</span>}
+              <div className={fieldClass}>
+                <label htmlFor="p-name" className="text-xs font-semibold uppercase tracking-wide text-slate-500">Name</label>
+                <input id="p-name" className={inputClass(!!infoErrors.name)} value={info.name} onChange={(e) => setInfo((i) => ({ ...i, name: e.target.value }))} aria-invalid={!!infoErrors.name} aria-describedby="p-name-err" />
+                {infoErrors.name && <span className="text-xs font-medium text-rose-600" id="p-name-err">{infoErrors.name}</span>}
               </div>
-              <div className="field">
-                <label htmlFor="p-email">Email</label>
-                <input id="p-email" type="email" className={`input ${infoErrors.email ? "invalid" : ""}`} value={info.email} onChange={(e) => setInfo((i) => ({ ...i, email: e.target.value }))} aria-invalid={!!infoErrors.email} aria-describedby="p-email-err" />
-                {infoErrors.email && <span className="field-error" id="p-email-err">{infoErrors.email}</span>}
+              <div className={`${fieldClass} mt-4`}>
+                <label htmlFor="p-email" className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</label>
+                <input id="p-email" type="email" className={inputClass(!!infoErrors.email)} value={info.email} onChange={(e) => setInfo((i) => ({ ...i, email: e.target.value }))} aria-invalid={!!infoErrors.email} aria-describedby="p-email-err" />
+                {infoErrors.email && <span className="text-xs font-medium text-rose-600" id="p-email-err">{infoErrors.email}</span>}
               </div>
-              <button type="submit" className="btn btn-primary" disabled={savingInfo}>{savingInfo ? "Saving..." : "Save changes"}</button>
+              <div className="mt-5 flex justify-end"><button type="submit" className={buttonClass("primary")} disabled={savingInfo}><Save size={16} /> {savingInfo ? "Saving..." : "Save changes"}</button></div>
             </form>
           </section>
 
-          <section className="card" aria-labelledby="pw-h">
-            <h2 id="pw-h" style={{ fontSize: 16, marginBottom: 14 }}>Change password</h2>
+          <section className={`${surfaceClass} p-5 sm:p-6`} aria-labelledby="pw-h">
+            <div className="mb-5 flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-600"><ShieldCheck size={18} /></span>
+              <div><h2 id="pw-h" className="font-semibold text-slate-950">Change password</h2><p className="mt-1 text-sm text-slate-500">Use a strong password you do not reuse elsewhere.</p></div>
+            </div>
             <Alert type={pwMsg.type || "error"} onClose={() => setPwMsg({ type: "", text: "" })}>{pwMsg.text}</Alert>
             <form onSubmit={savePassword} noValidate>
               {pwField("pw-current", "Current password", "currentPassword", "current-password")}
-              {pwField("pw-new", "New password", "newPassword", "new-password")}
-              {pwField("pw-confirm", "Confirm new password", "confirmPassword", "new-password")}
-              <button type="submit" className="btn btn-primary" disabled={savingPw}>{savingPw ? "Updating..." : "Update password"}</button>
+              <div className="mt-4">{pwField("pw-new", "New password", "newPassword", "new-password")}</div>
+              <div className="mt-4">{pwField("pw-confirm", "Confirm new password", "confirmPassword", "new-password")}</div>
+              <div className="mt-5 flex justify-end"><button type="submit" className={buttonClass("primary")} disabled={savingPw}><KeyRound size={16} /> {savingPw ? "Updating..." : "Update password"}</button></div>
             </form>
           </section>
 
-          <section className="card" aria-labelledby="out-h">
-            <h2 id="out-h" style={{ fontSize: 16, marginBottom: 6 }}>Session</h2>
-            <p className="muted" style={{ marginTop: 0 }}>Log out of this device.</p>
-            <button className="btn" onClick={() => setConfirmLogout(true)}><LogOut size={16} /> Log out</button>
+          <section className={`${surfaceClass} flex items-center justify-between gap-4 p-5 sm:p-6`} aria-labelledby="out-h">
+            <div><h2 id="out-h" className="font-semibold text-slate-950">Session</h2><p className="mt-1 text-sm text-slate-500">Log out of this device.</p></div>
+            <button className={buttonClass()} onClick={() => setConfirmLogout(true)}><LogOut size={16} /> Log out</button>
           </section>
         </div>
       )}
@@ -155,9 +165,9 @@ export default function Profile() {
       {confirmLogout && (
         <Modal title="Log out" onClose={() => !loggingOut && setConfirmLogout(false)}>
           <p>Are you sure you want to log out?</p>
-          <div className="modal-actions">
-            <button className="btn" onClick={() => setConfirmLogout(false)} disabled={loggingOut}>Cancel</button>
-            <button className="btn btn-danger" onClick={handleLogout} disabled={loggingOut}>{loggingOut ? "Logging out..." : "Log out"}</button>
+          <div className={modalActionsClass}>
+            <button className={buttonClass()} onClick={() => setConfirmLogout(false)} disabled={loggingOut}>Cancel</button>
+            <button className={buttonClass("danger")} onClick={handleLogout} disabled={loggingOut}>{loggingOut ? "Logging out..." : "Log out"}</button>
           </div>
         </Modal>
       )}

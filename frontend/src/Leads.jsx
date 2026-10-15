@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { getLeads, createLead, updateLead, deleteLead, getServices, getErrorMessage } from "./api.jsx";
-import { Layout, Modal, Alert, Spinner, EmptyState, StatusBadge, getId } from "./Dashboard.jsx";
+import { Layout, Modal, Alert, Spinner, EmptyState, StatusBadge, getId, buttonClass, fieldClass, iconButtonClass, inputClass, modalActionsClass, surfaceClass } from "./Dashboard.jsx";
 
 const STATUSES = ["New", "Contacted", "Qualified", "Converted", "Lost"];
 const SOURCES = ["Website", "Referral", "Social Media", "Email Campaign", "Cold Call", "Event", "Other"];
@@ -44,18 +44,18 @@ function LeadForm({ initial, serviceNames, onSubmit, onCancel }) {
   };
 
   const field = (id, label, input, error) => (
-    <div className="field">
-      <label htmlFor={id}>{label}</label>
+    <div className={fieldClass}>
+      <label htmlFor={id} className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</label>
       {input}
-      {error && <span className="field-error" id={`${id}-err`}>{error}</span>}
+      {error && <span className="text-xs font-medium text-rose-600" id={`${id}-err`}>{error}</span>}
     </div>
   );
-  const cls = (k) => `input ${errors[k] ? "invalid" : ""}`;
+  const cls = (k) => inputClass(!!errors[k]);
 
   return (
     <form onSubmit={submit} noValidate>
       <Alert>{apiError}</Alert>
-      <div className="form-grid">
+      <div className="grid gap-4 sm:grid-cols-2">
         {field("l-name", "Full name *", <input id="l-name" className={cls("name")} value={form.name} onChange={set("name")} aria-invalid={!!errors.name} aria-describedby="l-name-err" />, errors.name)}
         {field("l-email", "Email *", <input id="l-email" type="email" className={cls("email")} value={form.email} onChange={set("email")} aria-invalid={!!errors.email} aria-describedby="l-email-err" />, errors.email)}
         {field("l-phone", "Phone", <input id="l-phone" type="tel" className="input" value={form.phone} onChange={set("phone")} />)}
@@ -78,9 +78,9 @@ function LeadForm({ initial, serviceNames, onSubmit, onCancel }) {
         ), errors.status)}
       </div>
       {field("l-notes", "Notes", <textarea id="l-notes" rows={3} className="input" value={form.notes} onChange={set("notes")} />)}
-      <div className="modal-actions">
-        <button type="button" className="btn" onClick={onCancel} disabled={saving}>Cancel</button>
-        <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? "Saving..." : initial?._id || initial?.id ? "Save changes" : "Add lead"}</button>
+      <div className={modalActionsClass}>
+        <button type="button" className={buttonClass()} onClick={onCancel} disabled={saving}>Cancel</button>
+        <button type="submit" className={buttonClass("primary")} disabled={saving}>{saving ? "Saving..." : initial?._id || initial?.id ? "Save changes" : "Add lead"}</button>
       </div>
     </form>
   );
@@ -179,30 +179,34 @@ export default function Leads() {
   }, [leads, query, statusFilter, sourceFilter]);
 
   const addButton = (
-    <button className="btn btn-primary" onClick={() => setModal({ lead: null })}><Plus size={16} /> Add lead</button>
+    <button className={buttonClass("primary")} onClick={() => setModal({ lead: null })}><Plus size={16} /> Add lead</button>
   );
 
   return (
     <Layout title="Leads">
-      <div className="page-head">
-        <p className="muted" style={{ margin: 0 }}>{leads.length} total lead{leads.length === 1 ? "" : "s"}</p>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Pipeline</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Leads</h2>
+          <p className="mt-1 text-sm text-slate-500">{leads.length} total lead{leads.length === 1 ? "" : "s"} in your pipeline</p>
+        </div>
         {addButton}
       </div>
 
       <Alert type="success" onClose={() => setSuccess("")}>{success}</Alert>
       <Alert onClose={() => setError("")}>{error}</Alert>
 
-      <div className="card">
-        <div className="toolbar">
-          <div className="grow" style={{ position: "relative" }}>
-            <Search size={16} style={{ position: "absolute", left: 10, top: 11, color: "#94a3b8" }} />
-            <input className="input" style={{ paddingLeft: 32, width: "100%" }} placeholder="Search name, email or company" aria-label="Search leads" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <div className={`${surfaceClass} overflow-hidden`}>
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row">
+          <div className="relative min-w-0 flex-1">
+            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input className={`${inputClass()} pl-9`} placeholder="Search name, email or company" aria-label="Search leads" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
-          <select className="input" aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select className={`${inputClass()} sm:w-44`} aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All statuses</option>
             {STATUSES.map((s) => <option key={s}>{s}</option>)}
           </select>
-          <select className="input" aria-label="Filter by source" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+          <select className={`${inputClass()} sm:w-44`} aria-label="Filter by source" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
             <option value="">All sources</option>
             {SOURCES.map((s) => <option key={s}>{s}</option>)}
           </select>
@@ -215,28 +219,28 @@ export default function Leads() {
         ) : filtered.length === 0 ? (
           <EmptyState title="No matching leads" text="Try a different search or clear the filters." />
         ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr><th>Lead</th><th>Phone</th><th>Company</th><th>Service</th><th>Source</th><th>Status</th><th>Change status</th><th>Actions</th></tr>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] text-left text-sm">
+              <thead className="border-b border-slate-100 bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500">
+                <tr>{["Lead", "Phone", "Company", "Service", "Source", "Status", "Change status", "Actions"].map((heading) => <th key={heading} className="px-5 py-3 font-semibold">{heading}</th>)}</tr>
               </thead>
               <tbody>
                 {filtered.map((l) => (
                   <tr key={getId(l)}>
-                    <td><strong>{l.name}</strong><div className="muted" style={{ fontSize: 12 }}>{l.email}</div></td>
-                    <td>{l.phone || "-"}</td>
-                    <td>{l.company || "-"}</td>
-                    <td>{l.service || "-"}</td>
-                    <td>{l.source || "-"}</td>
-                    <td><StatusBadge status={l.status} /></td>
-                    <td>
-                      <select className="input" style={{ width: 130 }} aria-label={`Change status for ${l.name}`} value={l.status} disabled={busyId === getId(l)} onChange={(e) => handleStatus(l, e.target.value)}>
+                    <td className="px-5 py-4"><strong className="font-semibold text-slate-900">{l.name}</strong><div className="mt-0.5 text-xs text-slate-500">{l.email}</div></td>
+                    <td className="px-5 py-4 text-slate-600">{l.phone || "-"}</td>
+                    <td className="px-5 py-4 text-slate-600">{l.company || "-"}</td>
+                    <td className="px-5 py-4 text-slate-600">{l.service || "-"}</td>
+                    <td className="px-5 py-4 text-slate-600">{l.source || "-"}</td>
+                    <td className="px-5 py-4"><StatusBadge status={l.status} /></td>
+                    <td className="px-5 py-4">
+                      <select className={`${inputClass()} w-36`} aria-label={`Change status for ${l.name}`} value={l.status} disabled={busyId === getId(l)} onChange={(e) => handleStatus(l, e.target.value)}>
                         {STATUSES.map((s) => <option key={s}>{s}</option>)}
                       </select>
                     </td>
-                    <td style={{ whiteSpace: "nowrap" }}>
-                      <button className="icon-btn" aria-label={`Edit ${l.name}`} onClick={() => setModal({ lead: l })}><Pencil size={16} /></button>
-                      <button className="icon-btn" aria-label={`Delete ${l.name}`} onClick={() => setToDelete(l)}><Trash2 size={16} color="#dc2626" /></button>
+                    <td className="whitespace-nowrap px-5 py-4">
+                      <button className={iconButtonClass} aria-label={`Edit ${l.name}`} onClick={() => setModal({ lead: l })}><Pencil size={16} /></button>
+                      <button className={`${iconButtonClass} text-rose-500 hover:bg-rose-50 hover:text-rose-600`} aria-label={`Delete ${l.name}`} onClick={() => setToDelete(l)}><Trash2 size={16} /></button>
                     </td>
                   </tr>
                 ))}
@@ -255,9 +259,9 @@ export default function Leads() {
       {toDelete && (
         <Modal title="Delete lead" onClose={() => !deleting && setToDelete(null)}>
           <p>Delete <strong>{toDelete.name}</strong>? This cannot be undone.</p>
-          <div className="modal-actions">
-            <button className="btn" onClick={() => setToDelete(null)} disabled={deleting}>Cancel</button>
-            <button className="btn btn-danger" onClick={handleDelete} disabled={deleting}>{deleting ? "Deleting..." : "Delete lead"}</button>
+          <div className={modalActionsClass}>
+            <button className={buttonClass()} onClick={() => setToDelete(null)} disabled={deleting}>Cancel</button>
+            <button className={buttonClass("danger")} onClick={handleDelete} disabled={deleting}>{deleting ? "Deleting..." : "Delete lead"}</button>
           </div>
         </Modal>
       )}

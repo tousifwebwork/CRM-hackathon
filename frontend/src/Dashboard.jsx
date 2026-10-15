@@ -146,6 +146,29 @@ const NAV = [
 
 const focusRing = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600";
 
+export const inputClass = (invalid = false) =>
+  `w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-4 ${
+    invalid
+      ? "border-rose-300 focus:border-rose-500 focus:ring-rose-100"
+      : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-100"
+  }`;
+
+export const buttonClass = (variant = "secondary") =>
+  `inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${
+    variant === "primary"
+      ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/20 hover:bg-indigo-700"
+      : variant === "danger"
+        ? "bg-rose-600 text-white shadow-sm shadow-rose-600/20 hover:bg-rose-700"
+        : "border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50"
+  }`;
+
+export const iconButtonClass =
+  `inline-grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-indigo-600 ${focusRing}`;
+
+export const surfaceClass = "rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40";
+export const fieldClass = "space-y-1.5";
+export const modalActionsClass = "mt-6 flex justify-end gap-2 border-t border-slate-100 pt-4";
+
 export function Layout({ title, children }) {
   const navigate = useNavigate();
   const token = useAuth();
