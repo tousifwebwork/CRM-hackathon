@@ -5,7 +5,7 @@ import {
   Plus, AlertCircle, CheckCircle2, Loader2, Inbox, TrendingUp, ChevronDown,
   ArrowUpRight, UserPlus, PhoneCall, BadgeCheck, RefreshCw,
 } from "lucide-react";
-import { getLeads, getServices, getErrorMessage, isAuthenticated, getStoredUser, logoutUser } from "./api.jsx";
+import { getLeads, getServices, getErrorMessage, useAuth, getStoredUser, logoutUser } from "./api.jsx";
 
 /* =====================================================================
    Shared UI (imported by Leads, Services and Profile from "./Dashboard.jsx")
@@ -148,6 +148,7 @@ const focusRing = "focus-visible:outline focus-visible:outline-2 focus-visible:o
 
 export function Layout({ title, children }) {
   const navigate = useNavigate();
+  const token = useAuth();
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState(false);
   const menuRef = useRef(null);
@@ -176,7 +177,7 @@ export function Layout({ title, children }) {
     };
   }, [menu]);
 
-  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  if (!token) return <Navigate to="/login" replace />;
 
   const handleLogout = async () => {
     if (!window.confirm("Log out of your account?")) return;

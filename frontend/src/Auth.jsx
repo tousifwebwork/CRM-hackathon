@@ -4,7 +4,7 @@ import {
   TrendingUp, Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, X,
   Users, BarChart3, Bot, ArrowRight, ShieldCheck,
 } from "lucide-react";
-import { loginUser, registerUser, getErrorMessage, isAuthenticated } from "./api.jsx";
+import { loginUser, registerUser, getErrorMessage, useAuth } from "./api.jsx";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INITIAL = { name: "", email: "", password: "", confirmPassword: "" };
@@ -63,6 +63,7 @@ function Field({ id, label, icon: Icon, type = "text", value, onChange, error, a
 
 export default function Auth() {
   const navigate = useNavigate();
+  const token = useAuth();
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState(INITIAL);
   const [errors, setErrors] = useState({});
@@ -72,7 +73,7 @@ export default function Auth() {
 
   const strength = useMemo(() => getStrength(form.password), [form.password]);
 
-  if (isAuthenticated()) return <Navigate to="/dashboard" replace />;
+  if (token) return <Navigate to="/dashboard" replace />;
 
   const isRegister = mode === "register";
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));

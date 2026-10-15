@@ -1,13 +1,24 @@
 import axios from "axios";
+import { useSyncExternalStore } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 /* ---------- Token storage (localStorage) ---------- */
 const TOKEN_KEY = "crm_token";
 const USER_KEY = "crm_user";
+const AUTH_CHANGED_EVENT = "crm:auth-changed";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const isAuthenticated = () => Boolean(getToken());
+const subscribeToAuth = (onChange) => {
+  window.addEventListener(AUTH_CHANGED_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(AUTH_CHANGED_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+};
+export const useAuth = () => useSyncExternalStore(subscribeToAuth, getToken, () => null);
 export const getStoredUser = () => {
   try {
     return JSON.parse(localStorage.getItem(USER_KEY));
@@ -18,10 +29,12 @@ export const getStoredUser = () => {
 export const saveAuth = (token, user) => {
   localStorage.setItem(TOKEN_KEY, token);
   if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 };
 export const clearAuth = () => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 };
 
 /* ---------- Axios client ---------- */
@@ -34,7 +47,10 @@ const api = axios.create({
 // Attach JWT to every request that has one
 api.interceptors.request.use((config) => {
   const token = getToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
