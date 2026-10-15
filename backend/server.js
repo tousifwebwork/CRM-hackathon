@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const leadRoutes = require("./routes/leadRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 // Fail fast if required settings are missing
 ["MONGODB_URI", "JWT_SECRET"].forEach((key) => {
@@ -35,6 +36,7 @@ app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/chat", chatRoutes);
 
 // 404 handler
 app.use((req, res) => {

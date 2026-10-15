@@ -123,6 +123,11 @@ export const changePassword = async (payload) => {
   return data;
 };
 
+export const sendChatMessage = async (history) => {
+  const { data } = await api.post("/api/chat", { history });
+  return data;
+};
+
 /* ---------- Leads ---------- */
 export const getLeads = async () => {
   const { data } = await api.get("/api/leads");

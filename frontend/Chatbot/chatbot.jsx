@@ -56,6 +56,7 @@ export default function Chatbot() {
       // The greeting is UI only; the API history must start with a user message
       const history = next.filter((m) => m !== GREETING).map(({ role, content }) => ({ role, content }));
       const { reply, actions } = await sendChat(history);
+      if (actions?.length) window.dispatchEvent(new Event("crm:data-changed"));
       setMessages((m) => [...m, { role: "assistant", content: reply, actions }]);
     } catch (err) {
       setError(err.message || "Something went wrong.");
