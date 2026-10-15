@@ -17,8 +17,18 @@ const serviceRoutes = require("./routes/serviceRoutes");
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
+const allowedOrigins = new Set([
+  "https://tww-crm.netlify.app",
+  "http://localhost:5173",
+  ...(process.env.CLIENT_URL || "").split(",").map((origin) => origin.trim()).filter(Boolean),
+]);
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+}));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
