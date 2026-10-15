@@ -2,7 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { getLeads, createLead, updateLead, deleteLead, getServices, getErrorMessage } from "./api.jsx";
-import { Layout, Modal, Alert, Spinner, EmptyState, StatusBadge, getId, buttonClass, fieldClass, iconButtonClass, inputClass, modalActionsClass, surfaceClass } from "./Dashboard.jsx";
+import {
+  Layout, Modal, Alert, Spinner, EmptyState, StatusBadge, getId,
+  buttonClass, fieldClass, iconButtonClass, inputClass, selectClass, textareaClass,
+  labelClass, errorTextClass, modalActionsClass, surfaceClass,
+} from "./Dashboard.jsx";
 
 const STATUSES = ["New", "Contacted", "Qualified", "Converted", "Lost"];
 const SOURCES = ["Website", "Referral", "Social Media", "Email Campaign", "Cold Call", "Event", "Other"];
@@ -43,41 +47,45 @@ function LeadForm({ initial, serviceNames, onSubmit, onCancel }) {
     }
   };
 
-  const field = (id, label, input, error) => (
+  const field = (id, label, input, error, optional = false) => (
     <div className={fieldClass}>
-      <label htmlFor={id} className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</label>
+      <div className="flex items-baseline justify-between">
+        <label htmlFor={id} className={labelClass}>{label}</label>
+        {optional && <span className="text-xs text-slate-400">Optional</span>}
+      </div>
       {input}
-      {error && <span className="text-xs font-medium text-rose-600" id={`${id}-err`}>{error}</span>}
+      {error && <span className={errorTextClass} id={`${id}-err`}>{error}</span>}
     </div>
   );
-  const cls = (k) => inputClass(!!errors[k]);
 
   return (
     <form onSubmit={submit} noValidate>
       <Alert>{apiError}</Alert>
       <div className="grid gap-4 sm:grid-cols-2">
-        {field("l-name", "Full name *", <input id="l-name" className={cls("name")} value={form.name} onChange={set("name")} aria-invalid={!!errors.name} aria-describedby="l-name-err" />, errors.name)}
-        {field("l-email", "Email *", <input id="l-email" type="email" className={cls("email")} value={form.email} onChange={set("email")} aria-invalid={!!errors.email} aria-describedby="l-email-err" />, errors.email)}
-        {field("l-phone", "Phone", <input id="l-phone" type="tel" className="input" value={form.phone} onChange={set("phone")} />)}
-        {field("l-company", "Company", <input id="l-company" className="input" value={form.company} onChange={set("company")} />)}
+        {field("l-name", "Full name *", <input id="l-name" className={inputClass(!!errors.name)} placeholder="Jane Cooper" value={form.name} onChange={set("name")} aria-invalid={!!errors.name} aria-describedby="l-name-err" />, errors.name)}
+        {field("l-email", "Email *", <input id="l-email" type="email" className={inputClass(!!errors.email)} placeholder="jane@company.com" value={form.email} onChange={set("email")} aria-invalid={!!errors.email} aria-describedby="l-email-err" />, errors.email)}
+        {field("l-phone", "Phone", <input id="l-phone" type="tel" className={inputClass()} placeholder="+91 98765 43210" value={form.phone} onChange={set("phone")} />, null, true)}
+        {field("l-company", "Company", <input id="l-company" className={inputClass()} placeholder="Company name" value={form.company} onChange={set("company")} />, null, true)}
         {field("l-service", "Service of interest", (
           <>
-            <input id="l-service" className="input" list="service-options" value={form.service} onChange={set("service")} />
+            <input id="l-service" className={inputClass()} placeholder="Type or pick a service" list="service-options" value={form.service} onChange={set("service")} />
             <datalist id="service-options">{serviceNames.map((n) => <option key={n} value={n} />)}</datalist>
           </>
-        ))}
+        ), null, true)}
         {field("l-source", "Lead source *", (
-          <select id="l-source" className={cls("source")} value={form.source} onChange={set("source")}>
+          <select id="l-source" className={selectClass(!!errors.source)} value={form.source} onChange={set("source")}>
             {SOURCES.map((s) => <option key={s}>{s}</option>)}
           </select>
         ), errors.source)}
         {field("l-status", "Status *", (
-          <select id="l-status" className={cls("status")} value={form.status} onChange={set("status")}>
+          <select id="l-status" className={selectClass(!!errors.status)} value={form.status} onChange={set("status")}>
             {STATUSES.map((s) => <option key={s}>{s}</option>)}
           </select>
         ), errors.status)}
       </div>
-      {field("l-notes", "Notes", <textarea id="l-notes" rows={3} className="input" value={form.notes} onChange={set("notes")} />)}
+      <div className="mt-4">
+        {field("l-notes", "Notes", <textarea id="l-notes" rows={4} className={textareaClass()} placeholder="Add any context about this lead..." value={form.notes} onChange={set("notes")} />, null, true)}
+      </div>
       <div className={modalActionsClass}>
         <button type="button" className={buttonClass()} onClick={onCancel} disabled={saving}>Cancel</button>
         <button type="submit" className={buttonClass("primary")} disabled={saving}>{saving ? "Saving..." : initial?._id || initial?.id ? "Save changes" : "Add lead"}</button>
@@ -202,14 +210,18 @@ export default function Leads() {
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input className={`${inputClass()} pl-9`} placeholder="Search name, email or company" aria-label="Search leads" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
-          <select className={`${inputClass()} sm:w-44`} aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All statuses</option>
-            {STATUSES.map((s) => <option key={s}>{s}</option>)}
-          </select>
-          <select className={`${inputClass()} sm:w-44`} aria-label="Filter by source" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
-            <option value="">All sources</option>
-            {SOURCES.map((s) => <option key={s}>{s}</option>)}
-          </select>
+          <div className="sm:w-44">
+            <select className={selectClass()} aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All statuses</option>
+              {STATUSES.map((s) => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="sm:w-44">
+            <select className={selectClass()} aria-label="Filter by source" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+              <option value="">All sources</option>
+              {SOURCES.map((s) => <option key={s}>{s}</option>)}
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -234,9 +246,11 @@ export default function Leads() {
                     <td className="px-5 py-4 text-slate-600">{l.source || "-"}</td>
                     <td className="px-5 py-4"><StatusBadge status={l.status} /></td>
                     <td className="px-5 py-4">
-                      <select className={`${inputClass()} w-36`} aria-label={`Change status for ${l.name}`} value={l.status} disabled={busyId === getId(l)} onChange={(e) => handleStatus(l, e.target.value)}>
-                        {STATUSES.map((s) => <option key={s}>{s}</option>)}
-                      </select>
+                      <div className="w-36">
+                        <select className={selectClass()} aria-label={`Change status for ${l.name}`} value={l.status} disabled={busyId === getId(l)} onChange={(e) => handleStatus(l, e.target.value)}>
+                          {STATUSES.map((s) => <option key={s}>{s}</option>)}
+                        </select>
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-5 py-4">
                       <button className={iconButtonClass} aria-label={`Edit ${l.name}`} onClick={() => setModal({ lead: l })}><Pencil size={16} /></button>
@@ -267,4 +281,4 @@ export default function Leads() {
       )}
     </Layout>
   );
-}
+} 

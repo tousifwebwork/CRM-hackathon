@@ -146,12 +146,41 @@ const NAV = [
 
 const focusRing = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600";
 
+/* ---------------------------------------------------------------------
+   Form controls (Tailwind only)
+   Use inputClass for text/email/tel/number/date inputs,
+   selectClass for <select> (e.g. Service) and textareaClass for Notes.
+   --------------------------------------------------------------------- */
+
+const controlBase =
+  "block w-full rounded-lg border bg-white text-sm text-slate-900 shadow-sm transition " +
+  "placeholder:text-slate-400 hover:border-slate-400 " +
+  "focus:outline-none focus:ring-4 " +
+  "disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:hover:border-slate-300";
+
+const controlState = (invalid) =>
+  invalid
+    ? "border-rose-300 focus:border-rose-500 focus:ring-rose-100"
+    : "border-slate-300 focus:border-indigo-500 focus:ring-indigo-500/15";
+
+// Text, email, tel, number, date...
 export const inputClass = (invalid = false) =>
-  `w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-4 ${
-    invalid
-      ? "border-rose-300 focus:border-rose-500 focus:ring-rose-100"
-      : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-100"
-  }`;
+  `${controlBase} h-11 px-3.5 ${controlState(invalid)}`;
+
+// <select> with a custom chevron (no extra CSS needed)
+export const selectClass = (invalid = false) =>
+  `${controlBase} h-11 cursor-pointer appearance-none pl-3.5 pr-10 ${controlState(invalid)} ` +
+  "bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22 stroke=%22%2364748b%22 stroke-width=%221.75%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M6 8l4 4 4-4%22/></svg>')] " +
+  "bg-[length:1.1rem_1.1rem] bg-[right_0.75rem_center] bg-no-repeat";
+
+// <textarea> for Notes
+export const textareaClass = (invalid = false) =>
+  `${controlBase} min-h-[110px] resize-y px-3.5 py-2.5 leading-6 ${controlState(invalid)}`;
+
+export const labelClass = "block text-sm font-medium text-slate-700";
+export const hintClass = "text-xs text-slate-500";
+export const errorTextClass = "text-xs font-medium text-rose-600";
+export const fieldClass = "space-y-1.5";
 
 export const buttonClass = (variant = "secondary") =>
   `inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${focusRing} ${
@@ -166,7 +195,6 @@ export const iconButtonClass =
   `inline-grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-indigo-600 ${focusRing}`;
 
 export const surfaceClass = "rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40";
-export const fieldClass = "space-y-1.5";
 export const modalActionsClass = "mt-6 flex justify-end gap-2 border-t border-slate-100 pt-4";
 
 export function Layout({ title, children }) {
