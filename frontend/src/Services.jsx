@@ -101,6 +101,12 @@ export default function Services() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Refresh when the chatbot changes data
+  useEffect(() => {
+    window.addEventListener("crm:data-changed", load);
+    return () => window.removeEventListener("crm:data-changed", load);
+  }, [load]);
+
   const handleSave = async (data) => {
     const id = getId(modal.service);
     if (id) await updateService(id, data);

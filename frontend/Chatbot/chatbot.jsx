@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
-import { sendChat } from "./chatbot.js";
+import { MessageCircle, X, Send, Loader2, RotateCcw, CheckCircle2 } from "lucide-react";
+import { sendChat } from "./chatbot";
 
 const CSS = `
 .cb *{box-sizing:border-box}
@@ -15,6 +15,8 @@ const CSS = `
 .cb-msg.user{align-self:flex-end;background:#4f46e5;color:#fff;border-bottom-right-radius:4px}
 .cb-msg.assistant{align-self:flex-start;background:#fff;border:1px solid #e2e8f0;border-bottom-left-radius:4px}
 .cb-msg.error{align-self:stretch;max-width:100%;background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.cb-action{align-self:flex-start;display:flex;align-items:center;gap:6px;font-size:12px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:999px;padding:3px 10px}
+.cb-head .cb-tools{display:flex;gap:8px}
 .cb-form{display:flex;gap:8px;padding:10px;border-top:1px solid #e2e8f0;background:#fff}
 .cb-form input{flex:1;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}
 .cb-form button{width:40px;border:0;border-radius:8px;background:#4f46e5;color:#fff;display:grid;place-items:center;cursor:pointer}
@@ -52,14 +54,20 @@ export default function Chatbot() {
 
     try {
       // The greeting is UI only; the API history must start with a user message
-      const history = next.filter((m, i) => !(i === 0 && m === GREETING));
-      const reply = await sendChat(history);
-      setMessages((m) => [...m, { role: "assistant", content: reply }]);
+      const history = next.filter((m) => m !== GREETING).map(({ role, content }) => ({ role, content }));
+      const { reply, actions } = await sendChat(history);
+      setMessages((m) => [...m, { role: "assistant", content: reply, actions }]);
     } catch (err) {
       setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetChat = () => {
+    if (loading) return;
+    setMessages([GREETING]);
+    setError("");
   };
 
   return (
@@ -70,12 +78,20 @@ export default function Chatbot() {
         <section className="cb-panel" aria-label="Chat assistant">
           <div className="cb-head">
             <span>Assistant</span>
-            <button onClick={() => setOpen(false)} aria-label="Close chat"><X size={18} /></button>
+            <span className="cb-tools">
+              <button onClick={resetChat} aria-label="Start a new chat" title="New chat"><RotateCcw size={16} /></button>
+              <button onClick={() => setOpen(false)} aria-label="Close chat"><X size={18} /></button>
+            </span>
           </div>
 
           <div className="cb-body" role="log" aria-live="polite">
             {messages.map((m, i) => (
-              <div key={i} className={`cb-msg ${m.role}`}>{m.content}</div>
+              <div key={i} style={{ display: "contents" }}>
+                {m.actions?.map((a, j) => (
+                  <div key={j} className="cb-action"><CheckCircle2 size={13} /> {a}</div>
+                ))}
+                <div className={`cb-msg ${m.role}`}>{m.content}</div>
+              </div>
             ))}
             {loading && (
               <div className="cb-msg assistant" role="status"><Loader2 size={16} className="cb-spin" /></div>

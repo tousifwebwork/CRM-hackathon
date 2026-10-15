@@ -118,6 +118,12 @@ export default function Leads() {
     getServices().then((s) => setServiceNames(s.map((x) => x.name).filter(Boolean))).catch(() => {});
   }, [load]);
 
+  // Refresh when the chatbot changes data
+  useEffect(() => {
+    window.addEventListener("crm:data-changed", load);
+    return () => window.removeEventListener("crm:data-changed", load);
+  }, [load]);
+
   const closeModal = () => {
     setModal(null);
     if (params.get("new")) setParams({}, { replace: true });

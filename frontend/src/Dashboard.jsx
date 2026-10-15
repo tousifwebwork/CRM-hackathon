@@ -268,6 +268,12 @@ export default function Dashboard() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Refresh when the chatbot changes data
+  useEffect(() => {
+    window.addEventListener("crm:data-changed", load);
+    return () => window.removeEventListener("crm:data-changed", load);
+  }, [load]);
+
   const counts = useMemo(() => {
     const c = Object.fromEntries(PIPELINE.map((s) => [s, 0]));
     leads.forEach((l) => { if (c[l.status] !== undefined) c[l.status] += 1; });
